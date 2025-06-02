@@ -1,5 +1,5 @@
-import express from 'express';
-import dotenv from 'dotenv';
+var express = require('express');
+var dotenv = require('dotenv');
 const app = express();
 dotenv.config();
 app.get("/",function(req,res){
