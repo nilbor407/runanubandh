@@ -15,7 +15,7 @@ const app = express();
 app.use(express.json());
 
 mongoose.connect(
-    'mongodb://localhost:27017/matrimony', //Please put your database url here
+    'mongodb+srv://moremanoj0123:Mannoj123@cluster0.gb2e40h.mongodb.net/runanubhanvishwavivah', //Please put your database url here
     {
       retryWrites: true,
       w: 'majority',
@@ -89,6 +89,6 @@ app.use((err: any, req: express.Request, res: express.Response) => {
   res.status(err.status || 500).send('Internal server error');
 });
 
-app.listen(8085, () => {
-  console.log(`Server running on port ${8085}`);
+app.listen(8086, () => {
+  console.log(`Server running on port ${8086}`);
 });
