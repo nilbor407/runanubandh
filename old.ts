@@ -7,10 +7,13 @@ import Upload from './src/routes/UploadS3Routes';
 import Admin from './src/routes/Admin';
 import Report from './src/routes/Report';
 import fileUpload from 'express-fileupload';
+import dotenv from 'dotenv';
+
 const crypto = require('crypto');
 
 const secret_key = '1234567890';
 const app = express();
+dotenv.config();
 
 app.use(express.json());
 
@@ -89,6 +92,6 @@ app.use((err: any, req: express.Request, res: express.Response) => {
   res.status(err.status || 500).send('Internal server error');
 });
 
-app.listen(8086, () => {
-  console.log(`Server running on port ${8086}`);
+app.listen(process.env.PORT, () => {
+  console.log(`Server running on port ${process.env.PORT}`);
 });
