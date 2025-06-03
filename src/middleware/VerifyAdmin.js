@@ -1,9 +1,7 @@
-import type { NextFunction, Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
-import { JWTScreatKey } from '../common/Constants';
-import { JWTResponse } from '../namespace/User';
+const jwt = require('jsonwebtoken');
+const { JWTAdminScreatKey } = require('../common/Constants');
 
-export const Verify = (req: Request, res: Response, next: NextFunction) => {
+const Verify = (req, res, next) => {
   const token =
     req.body.token || req.query.token || req.headers['x-access-token'];
   if (!token) {
@@ -13,8 +11,8 @@ export const Verify = (req: Request, res: Response, next: NextFunction) => {
     });
   }
   try {
-    const { userId } = jwt.verify(token, JWTScreatKey) as JWTResponse;
-    req.params.userId = userId;
+    const decoded = jwt.verify(token, JWTAdminScreatKey);
+    req.params.userId = decoded.userId;
   } catch (err) {
     return res.status(401).send({
       status: 'failed',
@@ -23,3 +21,5 @@ export const Verify = (req: Request, res: Response, next: NextFunction) => {
   }
   return next();
 };
+
+module.exports = { Verify };

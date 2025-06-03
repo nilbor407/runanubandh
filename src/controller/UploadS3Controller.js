@@ -1,14 +1,9 @@
-import AWS from 'aws-sdk';
+const AWS = require('aws-sdk');
 const sharp = require('sharp');
-import { Request, Response } from 'express';
-import fileUpload from 'express-fileupload';
+const fileUpload = require('express-fileupload');
 const path = require('path');
 
-interface MulterRequest extends Request {
-  file: any;
-}
-
-const uploadS3 = async (req: Request, res: Response) => {
+const uploadS3 = async (req, res) => {
   try {
     //LOAD AWS CONFIG
     AWS.config.update({
@@ -17,19 +12,15 @@ const uploadS3 = async (req: Request, res: Response) => {
       region: 'us-east-1',
     });
 
-    if (req?.files.profilePhoto) {
-      const file = req.files.profilePhoto as fileUpload.UploadedFile;
-
+    if (req?.files && req.files.profilePhoto) {
+      const file = req.files.profilePhoto;
       //This convets the Image into webp
       const data = await sharp(file.data).webp({
         quality: 60,
       });
-
       const fileExtension = data.options.formatOut;
-
       const s3 = new AWS.S3();
       const randomName = (Math.random() + 1).toString(36).substring(7);
-
       // Setting up S3 upload parameters
       const params = {
         Bucket: 'whitethread',
@@ -37,8 +28,7 @@ const uploadS3 = async (req: Request, res: Response) => {
         Body: data,
         ContentType: 'image/webp',
       };
-
-      s3.upload(params, function (err: any, data: any) {
+      s3.upload(params, function (err, data) {
         if (err) {
           throw err;
         }
@@ -52,12 +42,10 @@ const uploadS3 = async (req: Request, res: Response) => {
       });
     }
 
-    if (req?.files.document) {
-      const file = req.files.document as fileUpload.UploadedFile;
-
+    if (req?.files && req.files.document) {
+      const file = req.files.document;
       const s3 = new AWS.S3();
       const randomName = (Math.random() + 1).toString(36).substring(7);
-
       // // Setting up S3 upload parameters
       const params = {
         Bucket: 'whitethread',
@@ -65,8 +53,7 @@ const uploadS3 = async (req: Request, res: Response) => {
         Body: file.data,
         ContentType: file.mimetype,
       };
-
-      s3.upload(params, function (err: any, data: any) {
+      s3.upload(params, function (err, data) {
         if (err) {
           throw err;
         }
@@ -87,6 +74,6 @@ const uploadS3 = async (req: Request, res: Response) => {
   }
 };
 
-export default {
+module.exports = {
   uploadS3,
 };

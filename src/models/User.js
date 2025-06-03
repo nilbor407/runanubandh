@@ -1,8 +1,7 @@
-import { Schema, model } from 'mongoose';
-import { UserType } from '../namespace/User';
-import moment from 'moment';
+const mongoose = require('mongoose');
+const moment = require('moment');
 
-const UserSchema = new Schema<UserType>(
+const UserSchema = new mongoose.Schema(
   {
     email: { type: String, required: true },
     password: { type: String, required: true },
@@ -36,6 +35,6 @@ const UserSchema = new Schema<UserType>(
   },
 );
 
-const User = model<UserType>('User', UserSchema);
+const User = mongoose.model('User', UserSchema);
 
-export default User;
+module.exports = User;

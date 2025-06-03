@@ -1,27 +1,22 @@
-import axios from 'axios';
-import crypto from 'crypto';
-import { Request, Response } from 'express';
-import {
+const axios = require('axios');
+const crypto = require('crypto');
+const {
   salt_key,
   merchant_id,
   subscriptionAmount,
   payemntRedirectUrl,
   JWTScreatKey,
   frontendPaymentRedirectURL,
-} from '../common/Constants';
-import { ErrorResponse } from '../helper/response';
-import { errorMessage } from '../common/StatusCodes';
+} = require('../common/Constants');
+const { ErrorResponse } = require('../helper/response');
+const { errorMessage } = require('../common/StatusCodes');
+const User = require('../models/User');
+const jwt = require('jsonwebtoken');
 
-import User from '../models/User';
-import jwt from 'jsonwebtoken';
-
-const makePayment = async (req: Request, res: Response) => 
-  {
-    console.log('makePayment called');
-  
+const makePayment = async (req, res) => {
+  console.log('makePayment called');
   try {
     let { transactionId, userId } = req.body;
-
     const data = {
       merchantId: merchant_id,
       merchantTransactionId: transactionId,
@@ -34,18 +29,14 @@ const makePayment = async (req: Request, res: Response) =>
         type: 'PAY_PAGE',
       },
     };
-
     const payload = JSON.stringify(data);
     const payloadMain = Buffer.from(payload).toString('base64');
     const keyIndex = 1;
     const string = payloadMain + '/pg/v1/pay' + salt_key;
     const sha256 = crypto.createHash('sha256').update(string).digest('hex');
     const checksum = sha256 + '###' + keyIndex;
-
     const prod_URL = 'https://api.phonepe.com/apis/hermes/pg/v1/pay';
-    // const prod_URL =
-    //   'https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/pay';
-
+    // const prod_URL = 'https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/pay';
     const options = {
       method: 'POST',
       url: prod_URL,
@@ -58,28 +49,25 @@ const makePayment = async (req: Request, res: Response) =>
         request: payloadMain,
       },
     };
-
     await axios(options)
       .then(function (response) {
         return res.json(response.data);
       })
       .catch(function (error) {
-        console.log("ghhhhhhhhhhhhhhhhhhh",error);
+        console.log('ghhhhhhhhhhhhhhhhhhh', error);
       });
   } catch (error) {
-    console.log("kkkkkkkkkkkkkk",error);
+    console.log('kkkkkkkkkkkkkk', error);
   }
 };
 
-export const verifyPayemt = async (req: Request, res: Response) => {
+const verifyPayemt = async (req, res) => {
   const { id, userId } = req.query;
   const merchantId = merchant_id;
-
   const keyIndex = 1;
   const string = `/pg/v1/status/${merchantId}/${id}` + salt_key;
   const sha256 = crypto.createHash('sha256').update(string).digest('hex');
   const checksum = sha256 + '###' + keyIndex;
-
   const options = {
     method: 'GET',
     url: `https://api.phonepe.com/apis/hermes/pg/v1/status/${merchantId}/${id}`,
@@ -90,7 +78,6 @@ export const verifyPayemt = async (req: Request, res: Response) => {
       'X-MERCHANT-ID': `${merchantId}`,
     },
   };
-
   axios
     .request(options)
     .then(function (response) {
@@ -109,17 +96,7 @@ export const verifyPayemt = async (req: Request, res: Response) => {
     });
 };
 
-const verifyPaymentSuccess = ({
-  userId,
-  paymentInfo,
-  req,
-  res,
-}: {
-  userId: any;
-  paymentInfo: any;
-  req: Request;
-  res: Response;
-}) => {
+const verifyPaymentSuccess = ({ userId, paymentInfo, req, res }) => {
   const jwtData = {
     userId,
     time: Date(),
@@ -138,11 +115,9 @@ const verifyPaymentSuccess = ({
           message: errorMessage.USER_NOT_FOUND,
         });
       }
-
       const redirectUrl = `${frontendPaymentRedirectURL}/validate?token=${
         data?.token
       }&type=${paymentInfo.code === 'PAYMENT_SUCCESS' ? 1 : 0}`;
-
       return res.redirect(redirectUrl);
     })
     .catch(error => {
@@ -150,7 +125,7 @@ const verifyPaymentSuccess = ({
     });
 };
 
-export default {
+module.exports = {
   makePayment,
   verifyPayemt,
 };

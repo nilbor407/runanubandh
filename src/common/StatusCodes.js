@@ -1,4 +1,4 @@
-export const httpStatusCodes = {
+const httpStatusCodes = {
   OK: 200,
   BAD_REQUEST: 400,
   NOT_FOUND: 404,
@@ -10,7 +10,7 @@ export const httpStatusCodes = {
   RESOURCE_ALREADY_EXISTS: 409,
 };
 
-export const errorMessage = {
+const errorMessage = {
   INVALID_PASSWORD: 'Invalid Password',
   INACTIVE_USER: ' User is InActive',
   USER_NOT_FOUND: 'No User Record found',
@@ -30,3 +30,5 @@ export const errorMessage = {
   USER_NOT_LOGIN:
     'Access Denied: You are not authorized to access this portal. Please contact the administrator for further assistance.',
 };
+
+module.exports = { httpStatusCodes, errorMessage };

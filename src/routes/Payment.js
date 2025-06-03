@@ -1,14 +1,14 @@
-import express from 'express';
-import Razorpay from 'razorpay';
-import {
+const express = require('express');
+const Razorpay = require('razorpay');
+const {
   JWTScreatKey,
   RazorpayKeyId,
   RazorpayKeySecreat,
-} from '../common/Constants';
-import User from '../models/User';
-import { ErrorResponse } from '../helper/response';
-import { errorMessage } from '../common/StatusCodes';
-import jwt from 'jsonwebtoken';
+} = require('../common/Constants');
+const User = require('../models/User');
+const { ErrorResponse } = require('../helper/response');
+const { errorMessage } = require('../common/StatusCodes');
+const jwt = require('jsonwebtoken');
 
 const router = express.Router();
 
@@ -114,4 +114,4 @@ router.post('/orderdetails', (req, res) => {
     });
 });
 
-export default router;
+module.exports = router;

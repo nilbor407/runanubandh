@@ -1,8 +1,7 @@
-import { Request, Response } from 'express';
-import { ErrorResponse, SuccessResponse } from '../helper/response';
-import Report from '../models/Report';
+const { ErrorResponse, SuccessResponse } = require('../helper/response');
+const Report = require('../models/Report');
 
-const ReportProfile: any = (req: Request, res: Response) => {
+function ReportProfile(req, res) {
   try {
     return Report.create(req.body).then(reportData => {
       return new SuccessResponse(res, { msg: 'Reported successfully' });
@@ -10,9 +9,9 @@ const ReportProfile: any = (req: Request, res: Response) => {
   } catch (error) {
     return new ErrorResponse(res, error);
   }
-};
+}
 
-const GetReportProfiles: any = (req: Request, res: Response) => {
+function GetReportProfiles(req, res) {
   Report.find()
     .then(data => {
       if (data === null) {
@@ -20,12 +19,11 @@ const GetReportProfiles: any = (req: Request, res: Response) => {
           message: 'No report found',
         });
       }
-
       return new SuccessResponse(res, data);
     })
     .catch(error => {
       return new ErrorResponse(res, error.message);
     });
-};
+}
 
-export default { ReportProfile, GetReportProfiles };
+module.exports = { ReportProfile, GetReportProfiles };

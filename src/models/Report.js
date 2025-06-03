@@ -1,7 +1,6 @@
-import { Schema, model } from 'mongoose';
-import { ReportType } from '../namespace/Report';
+const mongoose = require('mongoose');
 
-const ReportSchema = new Schema<ReportType>(
+const ReportSchema = new mongoose.Schema(
   {
     reportedUserId: { type: String, required: true },
     reportingUserId: { type: String, required: true },
@@ -13,6 +12,6 @@ const ReportSchema = new Schema<ReportType>(
   },
 );
 
-const Report = model<ReportType>('Report', ReportSchema);
+const Report = mongoose.model('Report', ReportSchema);
 
-export default Report;
+module.exports = Report;
