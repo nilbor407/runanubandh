@@ -29,8 +29,6 @@ const makePayment = async (req, res) => {
         type: 'PAY_PAGE',
       },
     };
-    console.log(data);
-    return;
     const payload = JSON.stringify(data);
     const payloadMain = Buffer.from(payload).toString('base64');
     const keyIndex = 1;
