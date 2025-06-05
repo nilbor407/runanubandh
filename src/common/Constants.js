@@ -4,7 +4,7 @@ const RazorpayKeyId = 'rzp_test_zXvhTnlKdx8mfz';
 const RazorpayKeySecreat = 'DaxxNwrL4Yc2L0P8g1u4617H';
 
 //PhonePay
-const salt_key = 'a77cd1fb-00d7-4ce5-b588-95df67f9d105'; // add salt key which is available in the PhonePay dashboard
+const salt_key = 'c0f3415e-555f-4019-91ab-a4cdbfc37a1e'; // add salt key which is available in the PhonePay dashboard
 const merchant_id = 'RUNANUBANDHONLINE'; // add merchant_id which is available in the PhonePay dashboard
 const subscriptionAmount = 501;
 const payemntRedirectUrl = 'https://www.runanubandhvishwavivah.com/user/verifyPayment';
