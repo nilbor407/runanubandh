@@ -20,11 +20,11 @@ const makePayment = async (req, res) => {
     const data = {
       merchantId: merchant_id,
       merchantTransactionId: transactionId,
-      name: req.body.name,
+      name: "More Manoj Rajendra",
       amount: subscriptionAmount * 100,
       redirectUrl: `${payemntRedirectUrl}?id=${transactionId}&userId=${userId}`,
       redirectMode: 'GET',
-      mobileNumber: req.body.phone,
+      mobileNumber: "7040487891",
       paymentInstrument: {
         type: 'PAY_PAGE',
       },
