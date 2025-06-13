@@ -84,24 +84,62 @@ const getUserInfo = (req, res) => {
 
 const login = (req, res) => {
   try {
+    // Ensure mobile number is treated as string
+    const mobileNumber = req.body?.mobileNumber?.toString();
+    const password = req.body?.password;
+
+    console.log('Login attempt for mobile:', mobileNumber);
+
+    if (!mobileNumber || !password) {
+      console.log('Missing credentials - mobile:', !!mobileNumber, 'password:', !!password);
+      return new ErrorResponse(res, {
+        message: 'Mobile number and password are required',
+      });
+    }
+
+    // Validate mobile number format
+    if (mobileNumber.length !== 10 || !/^\d{10}$/.test(mobileNumber)) {
+      console.log('Invalid mobile number format:', mobileNumber);
+      return new ErrorResponse(res, {
+        message: 'Mobile number must be exactly 10 digits',
+      });
+    }
+
     return User.find({
-      mobileNumber: req.body?.mobileNumber,
-      password: req?.body?.password,
+      mobileNumber: mobileNumber,
+      password: password,
     }).then((userData) => {
+      console.log('Users found with matching credentials:', userData.length);
+
       if (userData.length <= 0) {
-        return new ErrorResponse(res, {
-          message: 'Incorrect Mobile Number or Password',
+        // Check if user exists with this mobile number but wrong password
+        return User.find({ mobileNumber: mobileNumber }).then((userCheck) => {
+          if (userCheck.length > 0) {
+            console.log('User exists but wrong password');
+            return new ErrorResponse(res, {
+              message: 'Incorrect password',
+            });
+          } else {
+            console.log('No user found with this mobile number');
+            return new ErrorResponse(res, {
+              message: 'No account found with this mobile number',
+            });
+          }
         });
       }
 
+      // Comment out payment check for development - uncomment for production
+      /*
       if (!userData[0]?.paymentInfo) {
         return new ErrorResponse(res, {
           message:
             'There seems to be an issue with your payment. Please reach out to our customer support for assistance.',
         });
       }
+      */
 
       const id = userData[0]._id.toString();
+      console.log('Login successful for user ID:', id);
 
       const jwtData = {
         userId: id,
@@ -120,16 +158,19 @@ const login = (req, res) => {
         {
           new: true,
         },
-      )
-        .then(data => {
-          return new SuccessResponse(res, { token });
-        })
+      ).then(data => {
+        return new SuccessResponse(res, { token });
+      })
         .catch(error => {
+          console.error('Error updating user token:', error);
           return new ErrorResponse(res, error.message);
         });
     });
   } catch (error) {
-    return new ErrorResponse(res, error);
+    console.error('Login error:', error);
+    return new ErrorResponse(res, {
+      message: 'Internal server error during login'
+    });
   }
 };
 
