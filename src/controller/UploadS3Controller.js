@@ -27,6 +27,7 @@ const uploadS3 = async (req, res) => {
         Key: 'matrimony/profile/' + randomName + '.' + fileExtension, // File name you want to save as in S3
         Body: data,
         ContentType: 'image/webp',
+        ACL: 'public-read',
       };
       s3.upload(params, function (err, data) {
         if (err) {
@@ -52,6 +53,7 @@ const uploadS3 = async (req, res) => {
         Key: 'matrimony/docs/' + randomName + path.extname(file.name), // File name you want to save as in S3
         Body: file.data,
         ContentType: file.mimetype,
+        ACL: 'public-read',
       };
       s3.upload(params, function (err, data) {
         if (err) {
