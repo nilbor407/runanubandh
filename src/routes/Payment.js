@@ -1,100 +1,74 @@
 const express = require('express');
-const Razorpay = require('razorpay');
-const {
-  JWTScreatKey,
-  RazorpayKeyId,
-  RazorpayKeySecreat,
-} = require('../common/Constants');
+// Remove Razorpay imports since we're only using PhonePay
+const { JWTScreatKey } = require('../common/Constants');
 const User = require('../models/User');
 const { ErrorResponse } = require('../helper/response');
 const { errorMessage } = require('../common/StatusCodes');
 const jwt = require('jsonwebtoken');
+const { logPaymentRequest } = require('../middleware/PaymentLogger');
+const { savePaymentInfo, verifyPaymentInfo } = require('../utils/PaymentUtils');
 
 const router = express.Router();
 
+// Add payment logging middleware to all routes
+router.use(logPaymentRequest);
+
+// Disable Razorpay order creation - redirect to PhonePay
 router.post('/order', async (req, res) => {
-  const razorpay = new Razorpay({
-    key_id: RazorpayKeyId,
-    key_secret: RazorpayKeySecreat,
+  console.log('Order creation requested, but we only support PhonePay payments');
+  return new ErrorResponse(res, {
+    message: 'This payment method is not supported. Please use PhonePay payment.',
+    supportedMethods: ['phonepe']
   });
-
-  const options = {
-    amount: req.body.amount,
-    currency: req.body.currency,
-    receipt: req.body.id,
-    payment_capture: 1,
-  };
-  try {
-    const response = await razorpay.orders.create(options);
-
-    const id = req.body.id;
-
-    return User.findById(id)
-      .then(data => {
-        if (data === null) {
-          return new ErrorResponse(res, {
-            message: errorMessage.USER_NOT_FOUND,
-          });
-        }
-
-        data?.set({
-          orderInfo: {
-            orderId: response.id,
-            currency: response.currency,
-            amount: response.amount,
-          },
-        });
-        data
-          ?.save()
-          .then(data2 => {
-            return res.json({
-              order_id: response.id,
-              currency: response.currency,
-              amount: response.amount,
-              id,
-            });
-          })
-          .catch(error => {
-            return new ErrorResponse(res, error.message);
-          });
-      })
-      .catch(error => {
-        return new ErrorResponse(res, error.message);
-      });
-  } catch (err) {
-    res.status(400).send('Not able to create order. Please try again!');
-  }
 });
 
-router.post('/payment', (req, res) => {
-  const jwtData = {
-    userId: req?.body?.id,
-    time: Date(),
-  };
-  const token = jwt.sign(jwtData, JWTScreatKey);
-  User.findOneAndUpdate(
-    {
-      'orderInfo.orderId': req?.body?.orderDetails?.orderId,
-    },
-    { paymentInfo: req.body, token },
-    { new: true },
-  )
-    .then(data => {
-      if (data === null) {
-        return new ErrorResponse(res, {
-          message: errorMessage.USER_NOT_FOUND,
-        });
-      }
-      const redirectUrl = `/validate?orderId=${
-        data?.paymentInfo?.orderDetails?.orderId
-      }&token=${data?.token}&type=${
-        data?.paymentInfo?.status === 'succeeded' ? 1 : 0
-      }`;
-      res.json({ redirect: redirectUrl });
-    })
-    .catch(error => {
-      return new ErrorResponse(res, error.message);
+// Disable Razorpay payment processing - redirect to PhonePay
+router.post('/payment', async (req, res) => {
+  console.log('Razorpay payment callback received, but we only support PhonePay');
+  return new ErrorResponse(res, {
+    message: 'This payment method is not supported. Please use PhonePay payment.',
+    supportedMethods: ['phonepe']
+  });
+});
+
+// Add PhonePay specific endpoints
+router.post('/phonepe/order', async (req, res) => {
+  console.log('PhonePay order creation requested:', req.body);
+
+  try {
+    const { userId } = req.body;
+
+    if (!userId) {
+      return new ErrorResponse(res, {
+        message: 'User ID is required'
+      });
+    }
+
+    // Verify user exists
+    const user = await User.findById(userId);
+    if (!user) {
+      return new ErrorResponse(res, {
+        message: errorMessage.USER_NOT_FOUND
+      });
+    }
+
+    // Generate unique transaction ID
+    const transactionId = 'TXN_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+    // Return transaction details for PhonePay integration
+    res.json({
+      success: true,
+      transactionId: transactionId,
+      userId: userId,
+      amount: 701, // Fixed subscription amount
+      currency: 'INR',
+      message: 'Transaction ID generated successfully'
     });
+
+  } catch (error) {
+    console.error('Error creating PhonePay order:', error);
+    return new ErrorResponse(res, error.message);
+  }
 });
 
 router.post('/orderdetails', (req, res) => {
@@ -112,6 +86,19 @@ router.post('/orderdetails', (req, res) => {
     .catch(error => {
       return new ErrorResponse(res, error.message);
     });
+});
+
+// Add endpoint to check payment status for debugging
+router.get('/status/:userId', async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const verificationResult = await verifyPaymentInfo(userId);
+    res.json(verificationResult);
+  } catch (error) {
+    console.error('Error in payment status endpoint:', error);
+    return new ErrorResponse(res, error.message);
+  }
 });
 
 module.exports = router;

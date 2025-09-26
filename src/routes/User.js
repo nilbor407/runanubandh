@@ -2,6 +2,7 @@ const express = require('express');
 const User = require('../controller/User');
 const PhonePay = require('../controller/PhonePay');
 const { Verify } = require('../middleware/VerifyToken');
+const { logPaymentRequest } = require('../middleware/PaymentLogger');
 
 const router = express.Router();
 
@@ -15,7 +16,9 @@ router.post('/deleteUserProfile', User.deleteUserProfile);
 router.post('/checkEmail', User.checkEmail);
 router.post('/verifyOTP', User.verifyOTP);
 router.post('/changeForgotPassword', User.changeForgotPassword);
-router.post('/makePayment', PhonePay.makePayment);
-router.get('/verifyPayment', PhonePay.verifyPayemt);
+
+// Add logging middleware for payment-related routes
+router.post('/makePayment', logPaymentRequest, PhonePay.makePayment);
+router.get('/verifyPayment', logPaymentRequest, PhonePay.verifyPayemt);
 
 module.exports = router;
