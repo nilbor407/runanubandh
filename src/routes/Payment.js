@@ -60,7 +60,7 @@ router.post('/phonepe/order', async (req, res) => {
       success: true,
       transactionId: transactionId,
       userId: userId,
-      amount: 701, // Fixed subscription amount
+      amount: 1, // Fixed subscription amount
       currency: 'INR',
       message: 'Transaction ID generated successfully'
     });
