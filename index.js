@@ -10,9 +10,12 @@ const fileUpload = require('express-fileupload');
 const dotenv = require('dotenv');
 
 const crypto = require('crypto');
+const exp = require('constants');
 
 const secret_key = '1234567890';
 const app = express();
+app.use(express.static('public/'));
+
 dotenv.config();
 
 app.use(express.json());
@@ -78,6 +81,7 @@ app.use('/pay', Payment);
 app.use('/upload', Upload);
 app.use('/admin', Admin);
 app.use('/report', Report);
+
 
 app.get('/ping', (req, res) => {
     return res.json({ message: 'HealthCheck' });

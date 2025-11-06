@@ -286,70 +286,162 @@ function getOtpEmailTemplate(otp) {
   return template.replace('{{OTP_CODE}}', otp);
 }
 
+const viewAadhaar = async (req, res) => {
+  try {
+    const token = req.query.token;
+    if (!token) return res.status(400).json({ message: "Token not provided" });
+
+    const user = await User.findOne({ token });
+    if (!user) return res.status(401).json({ message: "Invalid or expired token" });
+
+    const aadhaarData = {
+      fullName: user.userDetails?.personalDetails?.fullName || "N/A",
+      aadhaarFront: user.photoDetails?.adharCard || null,
+      aadhaarBack: user.aadhaarBackImage || null,
+      email: user.userDetails?.basicDetails?.height || null,
+      photo: user.photoDetails?.profilePhoto || null,
+    };
+
+    return res.status(200).json({ aadhaarData });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: err.message });
+  }
+};
+
+const updateAadhaar = async (req, res) => {
+  try {
+    const token = req.body.token;
+    const file = req.files?.aadhaarFront;
+    if (!token || !file) {
+      return res.status(400).json({ message: "Token or file not provided" });
+    }
+
+    const user = await User.findOne({ token });
+    if (!user) return res.status(401).json({ message: "Invalid or expired token" });
+
+    // ✅ Upload folder (public/uploads)
+    const uploadDir = path.join(__dirname, '../../public/uploads'); // project root चा public/uploads
+    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+
+    const fileName = Date.now() + '_' + file.name;
+    const filePath = path.join(uploadDir, fileName);
+    fs.writeFileSync(filePath, file.data);
+
+    // Absolute URL
+    const serverDomain = "https://runanubandh.cloudjiffy.net";
+    const absoluteUrl = `/uploads/${fileName}`;
+
+    user.photoDetails = user.photoDetails || {};
+    user.photoDetails.adharCard = absoluteUrl;
+    user.markModified('photoDetails');
+    await user.save();
+
+
+    return res.status(200).json({
+      message: "Aadhaar updated successfully",
+      aadhaarData: {
+        fullName: user.userDetails?.personalDetails?.fullName || "N/A",
+        aadhaarFront: user.photoDetails.adharCard, // updated path
+        photo: user.photoDetails?.profilePhoto || null,
+      }
+    });
+
+  } catch (err) {
+    console.error("Error updating Aadhaar:", err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
+
+
+
+
+// const transporter = nodemailer.createTransport({
+//   host: 'smtp.gmail.com',
+//   port: 587,         
+//   secure: false,     
+//   auth: {
+//     user: 'dattapadre7249@gmail.com',
+//     pass: 'ibip cill mvek iypo', // make sure this is the SMTP password
+//   },
+//   tls: {
+//     rejectUnauthorized: false,
+//   },
+//   logger: true,
+//   debug: true,
+// });
+
+
+
 const transporter = nodemailer.createTransport({
-  host: 'smtpout.secureserver.net',
-  port: 465, // 465 for secure connections (SSL/TLS)
-  secure: true, // Use SSL/TLS
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false, // true for port 465, false for other ports
   auth: {
-    user: 'info@sakalvishwavivah.com', // Your GoDaddy email
-    pass: 'Admin@123#123', // Your GoDaddy email password
+    user: "dattapadre7249@gmail.com",
+    pass: "ibip cill mvek iypo",
   },
 });
 
+
+// giteaviraj155@gmail.com
+// hxnq yrpq pzss deru'
 const sendOtpEmail = (to, otp) => {
   const emailTemplate = getOtpEmailTemplate(otp);
 
   const mailOptions = {
-    from: 'Sakal Vishwa Vivah <info@sakalvishwavivah.com>',
+    from: 'dattapadre7249@gmail.com ',
     to: to,
     subject: 'Your OTP Code',
     html: emailTemplate,
   };
 
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      return console.log(error);
-    }
-    console.log('Message sent: %s', info.messageId);
-  });
+  return transporter.sendMail(mailOptions);
 };
 
-const checkEmail = (req, res) => {
-  try {
-    return User.find({
-      email: req.body?.email,
-    }).then((userData) => {
-      if (userData.length <= 0) {
-        return new ErrorResponse(res, {
-          message: 'User not found',
-        });
-      } else {
-        const otp = Math.floor(1000 + Math.random() * 9000).toString();
-        sendOtpEmail(req.body?.email, otp);
 
-        return User.findOneAndUpdate(
-          {
-            _id: userData[0]._id.toString(),
-          },
-          {
-            otp,
-          },
-          {
-            new: true,
-          },
-        )
-          .then(data => {
-            return new SuccessResponse(res, { message: 'Otp sent' });
-          })
-          .catch(error => {
-            return new ErrorResponse(res, error.message);
-          });
-      }
-    });
+
+
+const checkEmail = async (req, res) => 
+{
+  console.log('checkEmail called with email:', req.body?.email);
+  try {
+    const userData = await User.find({ email: req.body?.email });
+    if (!userData.length) {
+      return new ErrorResponse(res, { message: 'User not found' });
+    }
+
+    const otp = Math.floor(1000 + Math.random() * 9000).toString();
+    console.log('Generated OTP:', otp, req.body?.email);
+
+    // Send OTP email
+    console.log(req.body?.email, otp);
+    try {
+      await sendOtpEmail(req.body?.email, otp);
+      console.log('OTP email sent successfully');
+    } catch (emailError) {
+      console.error('Error sending OTP email:', emailError);
+      return new ErrorResponse(res, { message: 'Failed to send OTP email' });
+    }
+
+    // Save OTP in DB
+    await User.findOneAndUpdate(
+      { _id: userData[0]._id.toString() },
+      { otp },
+      { new: true }
+    );
+
+    console.log("email send Done....");
+
+    return new SuccessResponse(res, { message: 'Otp sent Done' });
+
   } catch (error) {
-    return new ErrorResponse(res, error);
+    return new ErrorResponse(res, error.message);
   }
 };
+
 
 const verifyOTP = (req, res) => {
   try {
@@ -394,6 +486,35 @@ const changeForgotPassword = (req, res) => {
     });
 };
 
+
+// ✅ Aadhaar view API
+// exports.viewAadhaar = async (req, res) => {
+//   try {
+//     const token = req.query.token;
+//     if (!token) return res.status(400).json({ message: "Token is required" });
+
+//     const user = await User.findOne({ token });
+//     if (!user) return res.status(404).json({ message: "User not found" });
+
+//     return res.json({
+//       aadhaarData: {
+//         fullName: user.fullName,
+//         aadhaarFront: user.aadhaarFront,
+//         aadhaarBack: user.aadhaarBack,
+//         aadhaarNumber: user.aadhaarNumber || "Not Provided",
+//         photo: user.photo,
+//       },
+//     });
+//   } catch (err) {
+//     console.error("Error in viewAadhaar:", err);
+//     res.status(500).json({ message: "Internal Server Error" });
+//   }
+// };
+
+
+// ✅ Aadhaar update API
+
+
 module.exports = {
   createNewUser,
   updateUser,
@@ -404,5 +525,7 @@ module.exports = {
   deleteUserProfile,
   checkEmail,
   verifyOTP,
+  viewAadhaar,
+  updateAadhaar,
   changeForgotPassword,
 };

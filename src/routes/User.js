@@ -15,6 +15,10 @@ router.post('/changePassword', Verify, User.changePassword);
 router.post('/deleteUserProfile', User.deleteUserProfile);
 router.post('/checkEmail', User.checkEmail);
 router.post('/verifyOTP', User.verifyOTP);
+router.get('/view_aadhaar', User.viewAadhaar); // Make route match frontend
+
+router.post('/update_aadhaar', User.updateAadhaar);
+
 router.post('/changeForgotPassword', User.changeForgotPassword);
 
 // Add logging middleware for payment-related routes

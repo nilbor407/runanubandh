@@ -78,5 +78,21 @@
       "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
       "content-type": "application/json"
     }
+  },
+  {
+    "timestamp": "2025-09-29T11:42:48.912Z",
+    "method": "POST",
+    "url": "/makePayment",
+    "query": {},
+    "body": {
+      "number": "9322849830",
+      "MID": "MID1759146168908",
+      "transactionId": "T1759146168908",
+      "userId": "68da70b819af4fe39d1348eb"
+    },
+    "headers": {
+      "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
+      "content-type": "application/json"
+    }
   }
 ]
