@@ -28,7 +28,7 @@ app.post('/order', async (req, res) => {
       merchantId: merchant_id,
       merchantTransactionId: merchantTransactionId,
       name: req.body.name,
-      amount: 1,
+      amount: 1111,
       redirectUrl: `http://localhost:8000/status?id=${merchantTransactionId}`,
       redirectMode: 'POST',
       mobileNumber: req.body.phone,
