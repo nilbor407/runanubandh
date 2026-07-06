@@ -21,7 +21,7 @@ dotenv.config();
 app.use(express.json());
 
 mongoose.connect(
-    'mongodb+srv://moremanoj0123:Mannoj123@cluster0.gb2e40h.mongodb.net/runanubhanvishwavivah', // Please put your database URL here
+    'mongodb+srv://moremanoj0123:MoreMannoj123@cluster0.gb2e40h.mongodb.net/runanubhanvishwavivah', // Please put your database URL here
     {
         retryWrites: true,
         w: 'majority',
